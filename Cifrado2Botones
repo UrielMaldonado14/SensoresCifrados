@@ -1,0 +1,45 @@
+// Entradas
+const int button1Pin = 2;
+const int button2Pin = 3;
+
+// LED integrado
+const int ledPin = 13;
+
+// Clave de cifrado XOR (2 bits)
+const int key = 0b10;
+
+void setup() {
+  pinMode(button1Pin, INPUT_PULLUP); // Botones con resistencia interna
+  pinMode(button2Pin, INPUT_PULLUP);
+  pinMode(ledPin, OUTPUT);
+
+  Serial.begin(9600);
+}
+
+void loop() {
+  // Leer botones (LOW = presionado)
+  int b1 = (digitalRead(button1Pin) == LOW) ? 1 : 0;
+  int b2 = (digitalRead(button2Pin) == LOW) ? 1 : 0;
+
+  // Combinar en 2 bits: b2b1
+  int combined = (b2 << 1) | b1;
+
+  // Aplicar XOR para encriptar
+  int encrypted = combined ^ key;
+
+  // LED integrado: encendido si el valor cifrado es impar
+  if (encrypted % 2 == 1) {
+    digitalWrite(ledPin, HIGH);
+  } else {
+    digitalWrite(ledPin, LOW);
+  }
+
+  // Mostrar en terminal
+  Serial.print("Entrada: "); Serial.print(b2); Serial.println(b1);
+  Serial.print("Cifrado : "); 
+  Serial.print((encrypted & 0b10) >> 1); // bit más significativo
+  Serial.println(encrypted & 0b01);      // bit menos significativo
+  Serial.println("---------------------");
+
+  delay(200); // Pequeño retardo
+}
