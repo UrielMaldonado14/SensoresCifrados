@@ -1,0 +1,96 @@
+#include <DHT.h>
+
+#define DHTPIN 2
+#define DHTTYPE DHT11
+DHT dht(DHTPIN, DHTTYPE);
+
+// Pines de sensores
+const int humSensor1Pin = A0;  // Humedad analógica 3.3V
+const int humSensor2Pin = A1;  // Humedad analógica 5V
+const int ldrPin = A2;         // Fotoresistencia
+
+// Voltajes de referencia
+const float ref3v3 = 3.3;
+const float ref5v = 5.0;
+
+// Clave para el cifrado XOR
+const byte clave = 0x5A; // puedes cambiarla
+
+void setup() {
+  Serial.begin(9600);
+  dht.begin();
+  pinMode(humSensor1Pin, INPUT);
+  pinMode(humSensor2Pin, INPUT);
+  pinMode(ldrPin, INPUT);
+}
+
+void loop() {
+  Serial.println("===== LECTURAS DE SENSORES =====");
+
+  // ---------- Sensor 1 (Humedad 3.3V) ----------
+  int hum1Raw = analogRead(humSensor1Pin);
+  float hum1Volt = (hum1Raw * ref3v3) / 1023.0;
+
+  byte hum1Cifrado = hum1Raw ^ clave;
+  int hum1Descifrado = hum1Cifrado ^ clave;
+
+  Serial.println("Sensor de humedad #1 (3.3V):");
+  Serial.print("  Original: "); Serial.print(hum1Raw);
+  Serial.print(" | Cifrado: "); Serial.print(hum1Cifrado);
+  Serial.print(" | Descifrado: "); Serial.println(hum1Descifrado);
+  Serial.print("  Voltaje: "); Serial.print(hum1Volt, 2); Serial.println(" V\n");
+
+  // ---------- Sensor 2 (Humedad 5V) ----------
+  int hum2Raw = analogRead(humSensor2Pin);
+  float hum2Volt = (hum2Raw * ref5v) / 1023.0;
+
+  byte hum2Cifrado = hum2Raw ^ clave;
+  int hum2Descifrado = hum2Cifrado ^ clave;
+
+  Serial.println("Sensor de humedad #2 (5V):");
+  Serial.print("  Original: "); Serial.print(hum2Raw);
+  Serial.print(" | Cifrado: "); Serial.print(hum2Cifrado);
+  Serial.print(" | Descifrado: "); Serial.println(hum2Descifrado);
+  Serial.print("  Voltaje: "); Serial.print(hum2Volt, 2); Serial.println(" V\n");
+
+  // ---------- Fotoresistencia (LDR) ----------
+  int ldrRaw = analogRead(ldrPin);
+  float ldrVolt = (ldrRaw * ref3v3) / 1023.0;
+
+  byte ldrCifrado = ldrRaw ^ clave;
+  int ldrDescifrado = ldrCifrado ^ clave;
+
+  Serial.println("Fotoresistencia (LDR):");
+  Serial.print("  Original: "); Serial.print(ldrRaw);
+  Serial.print(" | Cifrado: "); Serial.print(ldrCifrado);
+  Serial.print(" | Descifrado: "); Serial.println(ldrDescifrado);
+  Serial.print("  Voltaje: "); Serial.print(ldrVolt, 2); Serial.println(" V\n");
+
+  // ---------- DHT11 ----------
+  float temp = dht.readTemperature();
+  float hum = dht.readHumidity();
+
+  // Convertir valores a enteros para cifrarlos
+  byte tempInt = (byte)temp;
+  byte humInt = (byte)hum;
+
+  byte tempCifrado = tempInt ^ clave;
+  byte humCifrado = humInt ^ clave;
+
+  byte tempDescifrado = tempCifrado ^ clave;
+  byte humDescifrado = humCifrado ^ clave;
+
+  Serial.println("Sensor DHT11:");
+  Serial.print("  Temperatura: "); 
+  Serial.print(tempInt); Serial.print(" °C | Cifrada: "); 
+  Serial.print(tempCifrado); Serial.print(" | Descifrada: "); 
+  Serial.println(tempDescifrado);
+
+  Serial.print("  Humedad: "); 
+  Serial.print(humInt); Serial.print(" % | Cifrada: "); 
+  Serial.print(humCifrado); Serial.print(" | Descifrada: "); 
+  Serial.println(humDescifrado);
+  Serial.println("=================================\n");
+
+  delay(3000);
+}
